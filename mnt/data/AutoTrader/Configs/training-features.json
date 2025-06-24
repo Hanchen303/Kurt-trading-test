@@ -1,0 +1,10 @@
+{
+  "Features": [
+    "Rsi",
+    "Cycle",
+    "Band",
+    "Atr",
+    "Obv",
+    "AccDist"
+  ]
+}

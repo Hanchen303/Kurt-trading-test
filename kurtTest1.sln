@@ -1,0 +1,32 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mnt", "mnt", "{48F9F589-EEA4-0E45-0B7B-B600F8A3F911}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "data", "data", "{B9F76F1A-A32E-9343-4194-0695783D90A8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoTrader", "mnt\data\AutoTrader\AutoTrader.csproj", "{8207C1C8-BDED-3F6E-7776-015A5DA9A58F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8207C1C8-BDED-3F6E-7776-015A5DA9A58F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8207C1C8-BDED-3F6E-7776-015A5DA9A58F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8207C1C8-BDED-3F6E-7776-015A5DA9A58F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8207C1C8-BDED-3F6E-7776-015A5DA9A58F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B9F76F1A-A32E-9343-4194-0695783D90A8} = {48F9F589-EEA4-0E45-0B7B-B600F8A3F911}
+		{8207C1C8-BDED-3F6E-7776-015A5DA9A58F} = {B9F76F1A-A32E-9343-4194-0695783D90A8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E3F83760-35C3-4C92-AEE5-27C31395EA39}
+	EndGlobalSection
+EndGlobal
