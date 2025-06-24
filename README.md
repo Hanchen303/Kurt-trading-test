@@ -105,5 +105,4 @@ AutoTrader is a fully modular, self-learning, hybrid algorithmic trading system 
 
 ---
 
-## System Status: Production-Grade ✅
 
