@@ -7,18 +7,19 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading.Tasks;
-using AutoTrader.Questrade.Authentication;
-using AutoTrader.Questrade.Market;
+using AutoTrader.Brokers.Models;
+using AutoTrader.Brokers.Interfaces;
+
 
 namespace AutoTrader.Analytics
 {
     public class CandleDataDownloader
     {
-        private readonly MarketService _marketService;
+        private readonly IBrokerMarketService _marketService;
         private static readonly TimeSpan MarketOpen = new TimeSpan(13, 30, 0);  // 9:30 AM EST in UTC
         private static readonly TimeSpan MarketClose = new TimeSpan(20, 0, 0);  // 4:00 PM EST in UTC
 
-        public CandleDataDownloader(MarketService marketService)
+        public CandleDataDownloader(IBrokerMarketService marketService)
         {
             _marketService = marketService;
         }

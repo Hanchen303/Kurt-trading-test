@@ -4,8 +4,9 @@ using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using AutoTrader.Config;
-using AutoTrader.Questrade.Market;
-using AutoTrader.Questrade.Authentication;
+using AutoTrader.Brokers;
+using AutoTrader.Brokers.Models;
+using AutoTrader.Brokers.Interfaces;
 using AutoTrader.Orchestration;
 using AutoTrader.Labeling;
 using AutoTrader.ML;
@@ -15,8 +16,8 @@ namespace AutoTrader
 {
     class Program
     {
-        private static AuthManager authManager;
-        private static MarketService marketService;
+        private static IBrokerAuthService authService;
+        private static IBrokerMarketService marketService;
         private static List<string> tickers;
 
         static async Task Main(string[] args)
@@ -51,10 +52,10 @@ namespace AutoTrader
                 case "test":
                     await RunTestMode();
                     break;
-                
+
                 case "modeltest":
                     ModelTester.RunFullModelTest();
-                    break; 
+                    break;
 
                 default:
                     Console.WriteLine($"❌ Unknown mode: {mode}");
@@ -64,9 +65,17 @@ namespace AutoTrader
 
         private static async Task InitializeAuthAsync()
         {
-            authManager = new AuthManager();
-            await authManager.InitializeAsync();
-            marketService = new MarketService(authManager.AccessToken, authManager.ApiServer);
+                // Load appsettings.json
+            var json = File.ReadAllText("Configs/appsettings.json");
+            var settings = JsonSerializer.Deserialize<AppSettings>(json);
+
+            // Use BrokerFactory to initialize broker services
+            var (market, auth) = BrokerFactory.CreateBroker(settings);
+
+            authService = auth;
+            marketService = market;
+
+            await authService.AuthenticateAsync();
         }
 
         private static void InitializeTickers()
@@ -77,35 +86,17 @@ namespace AutoTrader
 
         private static async Task RunDownloadOnlyMode()
         {
-            Console.WriteLine("🚀 Running Downloader Only Mode...");
-            var downloader = new HistoricalDownloader(marketService, tickers, 90);
-            await downloader.DownloadAsync();
-            Console.WriteLine("✅ Downloader finished.");
+            //add anything to download
         }
 
         private static async Task RunTestMode()
         {
-            Console.WriteLine("🔧 Running authentication test...");
-
-            authManager = new AuthManager();
-            authManager.LoadConfig();
-
-            Console.WriteLine($"Loaded AccessToken: {authManager.AccessToken.Substring(0, 10)}...");
-            Console.WriteLine($"Loaded RefreshToken: {authManager.RefreshToken.Substring(0, 10)}...");
-
-            Console.WriteLine("🔄 Attempting token refresh...");
-            bool refreshed = await authManager.RefreshTokenAsync();
-
-            if (refreshed)
-            {
-                Console.WriteLine("✅ Token refresh succeeded!");
-                Console.WriteLine($"New AccessToken: {authManager.AccessToken.Substring(0, 10)}...");
-                Console.WriteLine($"New ApiServer: {authManager.ApiServer}");
-            }
-            else
-            {
-                Console.WriteLine("❌ Token refresh failed. 401 Unauthorized likely.");
-            }
+            //add anything to test
+        }
+        public static AppSettings LoadAppSettings()
+        {
+            var json = File.ReadAllText("Configs/appsettings.json");
+            return JsonSerializer.Deserialize<AppSettings>(json);
         }
 
     }

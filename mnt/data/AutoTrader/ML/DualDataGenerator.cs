@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using AutoTrader.Analytics;
-using AutoTrader.Questrade.Market;
+using AutoTrader.Brokers.Models;
 using AutoTrader.Config;
 
 namespace AutoTrader.ML
@@ -52,11 +52,13 @@ namespace AutoTrader.ML
                 var json = File.ReadAllText(candleFilePath);
                 var candles = JsonSerializer.Deserialize<List<Candle>>(json);
 
+                if (candles == null || candles.Count == 0) continue;
+
                 var closes = candles.Select(c => c.Close).ToList();
                 var highs = candles.Select(c => c.High).ToList();
                 var lows = candles.Select(c => c.Low).ToList();
-                var volumes = candles.Select(c => c.Volume).ToList();
-                var times = candles.Select(c => c.Start).ToList();
+                var volumes = candles.Select(c => (long)c.Volume).ToList();
+                var times = candles.Select(c => c.Timestamp).ToList();  
 
                 var indicators = new Dictionary<string, List<decimal?>>();
 

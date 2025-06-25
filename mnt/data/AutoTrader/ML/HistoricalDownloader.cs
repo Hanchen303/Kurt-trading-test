@@ -5,19 +5,19 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Threading;
-using AutoTrader.Questrade.Market;
+using AutoTrader.Brokers.Interfaces;
 
 namespace AutoTrader.ML
 {
     public class HistoricalDownloader
     {
-        private readonly MarketService _marketService;
+        private readonly IBrokerMarketService _marketService;
         private readonly int _daysBack;
         private readonly List<string> _tickers;
         private readonly int _maxRetries = 3;
         private readonly int _retryDelayMs = 2000;
 
-        public HistoricalDownloader(MarketService marketService, List<string> tickers, int daysBack = 90)
+        public HistoricalDownloader(IBrokerMarketService marketService, List<string> tickers, int daysBack = 90)
         {
             _marketService = marketService;
             _tickers = tickers;

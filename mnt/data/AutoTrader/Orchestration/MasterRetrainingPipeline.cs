@@ -5,7 +5,9 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using AutoTrader.ML;
-using AutoTrader.Questrade.Market;
+using AutoTrader.Brokers.Interfaces;
+using AutoTrader.Brokers.Models;
+using AutoTrader.Brokers;
 using AutoTrader.Config;
 using AutoTrader.Strategy;
 using AutoTrader.Labeling;
@@ -15,7 +17,7 @@ namespace AutoTrader.Orchestration
 {
     public static class MasterRetrainingPipeline
     {
-        public static async Task RunFullRetrainingAsync(MarketService marketService, List<string> tickers, int daysBack = 90)
+        public static async Task RunFullRetrainingAsync(IBrokerMarketService marketService, List<string> tickers, int daysBack = 90)
         {
             Console.WriteLine("🚀 Starting FULL retraining pipeline...");
 
@@ -37,15 +39,19 @@ namespace AutoTrader.Orchestration
                 var candleFiles = Directory.GetFiles(rawPath, "*.json").OrderBy(f => f).ToList();
 
                 var allCandles = new List<Candle>();
+
                 foreach (var file in candleFiles)
                 {
                     var json = await File.ReadAllTextAsync(file);
                     var candles = JsonSerializer.Deserialize<List<Candle>>(json);
-                    allCandles.AddRange(candles);
+
+                    if (candles != null)
+                        allCandles.AddRange(candles);
                 }
 
                 var simulator = new HistoricalSignalLabeler();
                 var (cyclePlans, breakoutPlans) = simulator.Simulate(allCandles, ticker);
+
                 allCyclePlans.AddRange(cyclePlans);
                 allBreakoutPlans.AddRange(breakoutPlans);
             }

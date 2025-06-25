@@ -5,7 +5,8 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using AutoTrader.Analytics;
-using AutoTrader.Questrade.Market;
+using AutoTrader.Brokers.Models;
+using AutoTrader.Brokers.Interfaces;
 using AutoTrader.Strategy;
 using AutoTrader.Config;
 using AutoTrader.ML;
@@ -14,20 +15,19 @@ namespace AutoTrader.Strategy
 {
     public class StrategyCoordinator
     {
-        private readonly MarketService _marketService;
+        private readonly IBrokerMarketService _marketService;
         private readonly TradingConfig _config;
         private readonly TrainingFeatureConfig _featureConfig;
 
         private readonly BreakoutStrategy _breakoutStrategy;
         private readonly CycleStrategy _cycleStrategy;
 
-        public StrategyCoordinator(MarketService marketService)
+        public StrategyCoordinator(IBrokerMarketService marketService)
         {
             _marketService = marketService;
             _config = LoadTradingConfig();
             _featureConfig = LoadTrainingFeatureConfig();
 
-            // Initialize ML-enhanced strategies
             _breakoutStrategy = new BreakoutStrategy();
             _cycleStrategy = new CycleStrategy();
         }
@@ -52,14 +52,12 @@ namespace AutoTrader.Strategy
             var atr = Indicators.CalculateATR(highs, lows, closes);
             var atrValue = atr.LastOrDefault() ?? 0;
 
-            // Call ML-enhanced Breakout strategy
             var breakoutSignals = _breakoutStrategy.GenerateSignals(candles, _featureConfig);
             var cycleSignals = _cycleStrategy.GenerateSignals(candles, _featureConfig);
 
             var breakoutSignal = breakoutSignals.LastOrDefault();
             var cycleSignal = cycleSignals.LastOrDefault();
 
-            // Keep your mutual exclusive logic
             if (breakoutSignal != null)
             {
                 Console.WriteLine($"> ML Breakout signal: {breakoutSignal.Type} at {breakoutSignal.Price}, ML Score: {breakoutSignal.MLScore:0.00}");

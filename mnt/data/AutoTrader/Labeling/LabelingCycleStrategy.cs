@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AutoTrader.Analytics;
-using AutoTrader.Questrade.Market;
+using AutoTrader.Brokers.Models;
+using AutoTrader.Brokers;
 using AutoTrader.Config;
 
 namespace AutoTrader.Labeling
@@ -20,7 +21,7 @@ namespace AutoTrader.Labeling
         {
             var closes = candles.Select(c => c.Close).ToList();
             var lows = candles.Select(c => c.Low).ToList();
-            var times = candles.Select(c => c.Start).ToList();
+            var times = candles.Select(c => c.Timestamp).ToList();
 
             var output = new List<Signal>();
 

@@ -3,14 +3,14 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace AutoTrader.Questrade.Account
+namespace AutoTrader.Brokers.Questrade
 {
-    public class AccountService
+    public class QuestradeAccountService
     {
         private readonly string _accessToken;
         private readonly string _apiServer;
 
-        public AccountService(string accessToken, string apiServer)
+        public QuestradeAccountService(string accessToken, string apiServer)
         {
             _accessToken = accessToken;
             _apiServer = apiServer;
@@ -28,8 +28,7 @@ namespace AutoTrader.Questrade.Account
             var json = await response.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(json);
 
-            var account = doc.RootElement
-                             .GetProperty("accounts")[0];
+            var account = doc.RootElement.GetProperty("accounts")[0];
 
             var number = account.GetProperty("number").GetString();
             var type = account.GetProperty("type").GetString();

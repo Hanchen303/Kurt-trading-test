@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,19 +12,14 @@ namespace AutoTrader.Analytics
             for (int i = 0; i < values.Count; i++)
             {
                 if (i + 1 < period)
-                {
                     result.Add(null);
-                }
                 else
-                {
-                    var avg = values.Skip(i + 1 - period).Take(period).Average();
-                    result.Add(Math.Round(avg, 4));
-                }
+                    result.Add(Math.Round(values.Skip(i + 1 - period).Take(period).Average(), 4));
             }
             return result;
         }
 
-        public static List<decimal?> CalculateVWMA(List<decimal> prices, List<int> volumes, int period)
+        public static List<decimal?> CalculateVWMA(List<decimal> prices, List<long> volumes, int period)
         {
             var result = new List<decimal?>();
             for (int i = 0; i < prices.Count; i++)
@@ -33,30 +27,27 @@ namespace AutoTrader.Analytics
                 if (i + 1 < period)
                 {
                     result.Add(null);
+                    continue;
                 }
-                else
+
+                var priceSegment = prices.Skip(i + 1 - period).Take(period).ToList();
+                var volSegment = volumes.Skip(i + 1 - period).Take(period).ToList();
+
+                decimal weightedSum = 0, totalVolume = 0;
+                for (int j = 0; j < period; j++)
                 {
-                    var priceSegment = prices.Skip(i + 1 - period).Take(period).ToList();
-                    var volSegment = volumes.Skip(i + 1 - period).Take(period).ToList();
-                    decimal weightedSum = 0;
-                    int totalVolume = 0;
-
-                    for (int j = 0; j < period; j++)
-                    {
-                        weightedSum += priceSegment[j] * volSegment[j];
-                        totalVolume += volSegment[j];
-                    }
-
-                    result.Add(totalVolume == 0 ? 0 : Math.Round(weightedSum / totalVolume, 4));
+                    weightedSum += priceSegment[j] * volSegment[j];
+                    totalVolume += volSegment[j];
                 }
+
+                result.Add(totalVolume == 0 ? 0 : Math.Round(weightedSum / totalVolume, 4));
             }
             return result;
         }
 
-        public static List<decimal?> CalculateRollingAccDist(List<decimal> closes, List<decimal> highs, List<decimal> lows, List<int> volumes, int window = 60)
+        public static List<decimal?> CalculateRollingAccDist(List<decimal> closes, List<decimal> highs, List<decimal> lows, List<long> volumes, int window = 60)
         {
             var result = new List<decimal?>();
-
             for (int i = 0; i < closes.Count; i++)
             {
                 if (i + 1 < window)
@@ -70,21 +61,18 @@ namespace AutoTrader.Analytics
                 {
                     var range = highs[j] - lows[j];
                     if (range == 0) continue;
-
                     var clv = ((closes[j] - lows[j]) - (highs[j] - closes[j])) / range;
                     rollingAD += clv * volumes[j];
                 }
-
                 result.Add(Math.Round(rollingAD, 2));
             }
-
             return result;
         }
 
-        public static List<long?> CalculateRollingOBV(List<decimal> closes, List<int> volumes, List<DateTime> times, int window = 60)
+        public static List<long?> CalculateRollingOBV(List<decimal> closes, List<long> volumes, List<DateTime> times, int window = 60)
         {
             var result = new List<long?>();
-            var dayStarts = new HashSet<int>();  // Indexes where a new trading day starts
+            var dayStarts = new HashSet<int>();
 
             for (int i = 1; i < times.Count; i++)
             {
@@ -103,12 +91,9 @@ namespace AutoTrader.Analytics
                 long rollingObv = 0;
                 for (int j = i + 1 - window; j <= i; j++)
                 {
-                    if (j == 0 || dayStarts.Contains(j)) continue;  // avoid cross-day gaps
-
-                    if (closes[j] > closes[j - 1])
-                        rollingObv += volumes[j];
-                    else if (closes[j] < closes[j - 1])
-                        rollingObv -= volumes[j];
+                    if (j == 0 || dayStarts.Contains(j)) continue;
+                    if (closes[j] > closes[j - 1]) rollingObv += (long)volumes[j];
+                    else if (closes[j] < closes[j - 1]) rollingObv -= (long)volumes[j];
                 }
 
                 result.Add(rollingObv);
@@ -117,13 +102,12 @@ namespace AutoTrader.Analytics
             return result;
         }
 
-
         public static List<decimal?> CalculateEMA(List<decimal> values, int period)
         {
             var result = new List<decimal?>();
             decimal multiplier = 2m / (period + 1);
-
             decimal? ema = null;
+
             for (int i = 0; i < values.Count; i++)
             {
                 if (i + 1 < period)
@@ -172,9 +156,8 @@ namespace AutoTrader.Analytics
 
         public static List<decimal?> CalculateRSI(List<decimal> closes, int period = 14)
         {
-            var rsi = new List<decimal?>();
-            decimal gain = 0;
-            decimal loss = 0;
+            var rsi = new List<decimal?> { null };
+            decimal gain = 0, loss = 0;
 
             for (int i = 1; i < closes.Count; i++)
             {
@@ -183,7 +166,6 @@ namespace AutoTrader.Analytics
                 {
                     if (change > 0) gain += change;
                     else loss -= change;
-
                     rsi.Add(null);
                 }
                 else if (i == period)
@@ -191,23 +173,22 @@ namespace AutoTrader.Analytics
                     if (change > 0) gain += change;
                     else loss -= change;
 
-                    decimal avgGain = gain / period;
-                    decimal avgLoss = loss / period;
-                    decimal rs = avgLoss == 0 ? 100 : avgGain / avgLoss;
+                    var avgGain = gain / period;
+                    var avgLoss = loss / period;
+                    var rs = avgLoss == 0 ? 100 : avgGain / avgLoss;
                     rsi.Add(Math.Round(100 - (100 / (1 + rs)), 2));
                 }
                 else
                 {
-                    decimal currentGain = change > 0 ? change : 0;
-                    decimal currentLoss = change < 0 ? -change : 0;
+                    var currentGain = change > 0 ? change : 0;
+                    var currentLoss = change < 0 ? -change : 0;
                     gain = ((gain * (period - 1)) + currentGain) / period;
                     loss = ((loss * (period - 1)) + currentLoss) / period;
-                    decimal rs = loss == 0 ? 100 : gain / loss;
+                    var rs = loss == 0 ? 100 : gain / loss;
                     rsi.Add(Math.Round(100 - (100 / (1 + rs)), 2));
                 }
             }
 
-            rsi.Insert(0, null);
             return rsi;
         }
 
@@ -216,25 +197,13 @@ namespace AutoTrader.Analytics
             var fastEma = CalculateEMA(closes, fastPeriod);
             var slowEma = CalculateEMA(closes, slowPeriod);
 
-            var macdLine = new List<decimal?>();
-            for (int i = 0; i < closes.Count; i++)
-            {
-                if (fastEma[i] != null && slowEma[i] != null)
-                    macdLine.Add(Math.Round(fastEma[i].Value - slowEma[i].Value, 4));
-                else
-                    macdLine.Add(null);
-            }
+            var macdLine = closes.Select((_, i) =>
+                fastEma[i] != null && slowEma[i] != null ? (decimal?)(Math.Round(fastEma[i].Value - slowEma[i].Value, 4)) : null).ToList();
 
             var signalLine = CalculateEMA(macdLine.Select(x => x ?? 0).ToList(), signalPeriod);
-            var histogram = new List<decimal?>();
 
-            for (int i = 0; i < macdLine.Count; i++)
-            {
-                if (macdLine[i] != null && signalLine[i] != null)
-                    histogram.Add(Math.Round(macdLine[i].Value - signalLine[i].Value, 4));
-                else
-                    histogram.Add(null);
-            }
+            var histogram = macdLine.Select((m, i) =>
+                m != null && signalLine[i] != null ? (decimal?)(Math.Round(m.Value - signalLine[i].Value, 4)) : null).ToList();
 
             return (macdLine, signalLine, histogram);
         }
@@ -247,7 +216,6 @@ namespace AutoTrader.Analytics
                 var high = highs[i];
                 var low = lows[i];
                 var prevClose = closes[i - 1];
-
                 var range = Math.Max(high - low, Math.Max(Math.Abs(high - prevClose), Math.Abs(low - prevClose)));
                 tr.Add(range);
             }
@@ -259,9 +227,9 @@ namespace AutoTrader.Analytics
 
         public static (List<decimal?> Cycle, List<decimal?> Signal) CalculateCyberCycleWithSignal(List<decimal> closes, int alphaLength = 5, int signalPeriod = 3)
         {
-            var cycleResult = new List<decimal?>();
             var cycle = new decimal[closes.Count];
             var smooth = new decimal[closes.Count];
+            var result = new List<decimal?>();
 
             decimal alpha = 2m / (alphaLength + 1);
 
@@ -269,51 +237,45 @@ namespace AutoTrader.Analytics
             {
                 if (i < 2)
                 {
-                    cycleResult.Add(null);
+                    result.Add(null);
                     continue;
                 }
 
-                // Ehlers smoothing
                 smooth[i] = (closes[i] + 2 * closes[i - 1] + closes[i - 2]) / 4;
 
                 if (i < 3)
                 {
-                    cycleResult.Add(null);
+                    result.Add(null);
                     continue;
                 }
 
                 cycle[i] = (1 - 0.5m * alpha) * (1 - 0.5m * alpha) * (smooth[i] - 2 * smooth[i - 1] + smooth[i - 2])
-                        + 2 * (1 - alpha) * cycle[i - 1]
-                        - (1 - alpha) * (1 - alpha) * cycle[i - 2];
+                         + 2 * (1 - alpha) * cycle[i - 1]
+                         - (1 - alpha) * (1 - alpha) * cycle[i - 2];
 
-                cycleResult.Add(Math.Round(cycle[i], 4));
+                result.Add(Math.Round(cycle[i], 4));
             }
 
-            // Generate signal line: EMA of cycle
-            var signal = CalculateEMA(cycleResult.Select(x => x ?? 0).ToList(), signalPeriod);
-
-            return (cycleResult, signal);
+            var signal = CalculateEMA(result.Select(x => x ?? 0).ToList(), signalPeriod);
+            return (result, signal);
         }
-        
+
         public static List<decimal?> CalculateStdDev(List<decimal> values, int period)
         {
             var result = new List<decimal?>();
             for (int i = 0; i < values.Count; i++)
             {
                 if (i + 1 < period)
-                {
                     result.Add(null);
-                }
                 else
                 {
-                    var subset = values.Skip(i + 1 - period).Take(period);
-                    var avg = subset.Average();
-                    var variance = subset.Select(x => (x - avg) * (x - avg)).Average();
+                    var window = values.Skip(i + 1 - period).Take(period);
+                    var avg = window.Average();
+                    var variance = window.Select(x => (x - avg) * (x - avg)).Average();
                     result.Add(Math.Round((decimal)Math.Sqrt((double)variance), 4));
                 }
             }
             return result;
         }
-
     }
 }

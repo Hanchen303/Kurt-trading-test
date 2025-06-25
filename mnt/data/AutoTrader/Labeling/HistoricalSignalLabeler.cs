@@ -4,9 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using AutoTrader.Analytics;
-using AutoTrader.Questrade.Market;
+using AutoTrader.Brokers.Interfaces;
+using AutoTrader.Brokers.Models;
 using AutoTrader.Strategy;
 using AutoTrader.Config;
+
 
 namespace AutoTrader.Labeling
 {
@@ -41,6 +43,11 @@ namespace AutoTrader.Labeling
                 RiskManager.PlanTrade(ticker, sig.Time, sig.Type, sig.Price, atrValue, capital)).ToList();
 
             return (cyclePlans, breakoutPlans);
+        }
+
+        internal (IEnumerable<TradePlan> cyclePlans, IEnumerable<TradePlan> breakoutPlans) Simulate(List<Candle> allCandles, string ticker)
+        {
+            throw new NotImplementedException();
         }
     }
 }

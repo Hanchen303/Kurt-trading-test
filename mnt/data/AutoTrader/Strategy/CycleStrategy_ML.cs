@@ -1,12 +1,11 @@
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using AutoTrader.Analytics;
-using AutoTrader.Questrade.Market;
+using AutoTrader.Config;
+using AutoTrader.Brokers.Models;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using AutoTrader.Config;
 
 namespace AutoTrader.Strategy
 {
@@ -37,7 +36,7 @@ namespace AutoTrader.Strategy
             var highs = candles.Select(c => c.High).ToList();
             var lows = candles.Select(c => c.Low).ToList();
             var volumes = candles.Select(c => c.Volume).ToList();
-            var times = candles.Select(c => c.Start).ToList();
+            var times = candles.Select(c => c.Timestamp).ToList();
 
             var indicators = new Dictionary<string, List<decimal?>>();
             foreach (var feature in config.Features)
@@ -58,19 +57,16 @@ namespace AutoTrader.Strategy
 
             for (int i = 5; i < closes.Count; i++)
             {
-                // Rule-based filter first (keep your original logic)
                 bool cycleCandidate = lows[i] < lows.Skip(i - 5).Take(5).Min();
                 if (!cycleCandidate) continue;
 
-                // Build ML feature vector
                 var features = config.Features.Select(f => (float)(indicators[f][i] ?? 0m)).ToArray();
                 var sample = new AutoTrader.ML.TradeSample { Features = features };
-
                 var prediction = predictionEngine.Predict(sample);
 
-                if (prediction.Probability > 0.6f)  // Threshold you can tune
+                if (prediction.Probability > 0.6f)
                 {
-                    output.Add(new Signal { Time = candles[i].Start, Type = "BUY", Price = closes[i], MLScore = prediction.Probability });
+                    output.Add(new Signal { Time = candles[i].Timestamp, Type = "BUY", Price = closes[i], MLScore = prediction.Probability });
                 }
             }
 
